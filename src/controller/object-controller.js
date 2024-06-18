@@ -25,7 +25,8 @@ const ObjectDetection = async (req, res) => {
 
         await object.save();
 
-        res.status(200).send(object);
+        console.log(`\n DETECTED OBJECT '${object.properties.name}' !`);
+        res.status(200).json({ message: 'Data saved into DB successfully' }).send(object);
     } catch (error) {
         res.status(400).send(error);
     }

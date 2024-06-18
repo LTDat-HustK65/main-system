@@ -11,7 +11,8 @@ const CreateWork = async (req, res) => {
         });
 
         await work.save();
-
+        
+        console.log(`\n CREATEED WORK '${work.name}' SUCCESSFULLY !`);
         res.status(200).send(work);
     } catch (error) {
         res.status(400).send(error);

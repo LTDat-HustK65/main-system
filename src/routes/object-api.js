@@ -10,6 +10,7 @@ const {
 Object_api.use(cors());
 
 // Các api cho bộ sinh vật thể
+//http://localhost:3030/object_api/
 Object_api.post('/detection', ObjectDetection);
 Object_api.put('/update', UpdateObject);
 Object_api.delete('/delete', DeleteObject);

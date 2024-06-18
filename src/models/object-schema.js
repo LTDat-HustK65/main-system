@@ -13,7 +13,7 @@ const objectSchema = new mongoose.Schema({
         currentLocation:{
             x: Number,
             y: Number,
-            z:Number
+            z: Number
         }
     }
 });
