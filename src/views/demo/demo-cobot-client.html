@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -566,7 +566,7 @@ function MovingCobot(object, timeAppear){
             
             object.position.y -=  dentalTime * 15;
             console.log('Tọa độ táo: ', object.position.y);
-            console.log('Góc quay Servo014: ', Servo04.rotation.x);
+            console.log('Góc quay Servo04: ', Servo04.rotation.x);
             if (Servo04.rotation.x >= 0) {
                 clearInterval(intervalObject);
                 console.log('Đã rơi vào giỏ!!!');
@@ -586,6 +586,834 @@ window.addEventListener("resize", function () {
     engine.resize();
 });
    
+    </script>
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Watching Robotic Arm</title>
+    <style>
+        canvas {
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+        .label {
+            position: absolute;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 5px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="renderCanvas"></canvas>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.6.2/dat.gui.min.js"></script>
+    <script src="https://assets.babylonjs.com/generated/Assets.js"></script>
+    <script src="https://cdn.babylonjs.com/recast.js"></script>
+    <script src="https://cdn.babylonjs.com/ammo.js"></script>
+    <script src="https://cdn.babylonjs.com/havok/HavokPhysics_umd.js"></script>
+    <script src="https://cdn.babylonjs.com/cannon.js"></script>
+    <script src="https://cdn.babylonjs.com/Oimo.js"></script>
+    <script src="https://cdn.babylonjs.com/earcut.min.js"></script>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
+    <script src="https://cdn.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
+    <script src="https://cdn.babylonjs.com/postProcessesLibrary/babylonjs.postProcess.min.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.js"></script>
+    <script src="https://cdn.babylonjs.com/serializers/babylonjs.serializers.min.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+    <script src="https://cdn.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>
+   
+    <script>
+
+   // thiết lập ban đầu
+var canvas = document.getElementById("renderCanvas");
+var engine = new BABYLON.Engine(canvas, true);
+var scene = new BABYLON.Scene(engine);
+var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 0, new BABYLON.Vector3(5, 3, 0),
+            scene
+        );
+    camera.setPosition (new BABYLON.Vector3(-500, 500, 500))
+camera.attachControl(canvas, true);
+var light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+new BABYLON.AxesViewer(scene, 100)// x: red, y: green, z: blue
+    
+// Import file .stl
+BABYLON.SceneLoader.ImportMesh("", "https://raw.githubusercontent.com/LTDat-HustK65/GP/master/server/src/public/models/", "Base.STL", scene, function (newMeshes, particleSystems, skeletons) {
+    var importedMesh = newMeshes[0];
+    importedMesh.setPivotPoint(new BABYLON.Vector3(0, 0, 0));
+    importedMesh.parent = Base;
+    importedMesh.position.x = -60; 
+    importedMesh.position.y = 0; 
+    importedMesh.position.z = 60; 
+    importedMesh.rotation.x = -1.5707963267948966;
+    importedMesh.rotation.y = 0; 
+    importedMesh.rotation.z = 0;
+    importedMesh.material = new BABYLON.StandardMaterial("importedMeshMaterial", scene);
+    importedMesh.material.diffuseColor = new BABYLON.Color3(0, 0, 0); 
+});
+BABYLON.SceneLoader.ImportMesh("", "https://raw.githubusercontent.com/LTDat-HustK65/GP/master/server/src/public/models/", "BaseUpper.STL", scene, function (newMeshes) {
+    var importedMesh = newMeshes[0];
+    importedMesh.setPivotPoint(new BABYLON.Vector3(0, 0, 0));
+    importedMesh.parent = BaseUpper;
+    importedMesh.position.x = -48; // vị trí ban đầu trên trục x
+    importedMesh.position.y = 56; // vị trí ban đầu trên trục y
+    importedMesh.position.z = 48; // vị trí ban đầu trên trục z 
+    importedMesh.rotation.x = -1.5707963267948966; 
+    importedMesh.rotation.y = 0; 
+    importedMesh.rotation.z = 0; 
+    importedMesh.material = new BABYLON.StandardMaterial("importedMeshMaterial", scene);
+    importedMesh.material.diffuseColor = new BABYLON.Color3(0.5, 0.5, 0.5); 
+});
+BABYLON.SceneLoader.ImportMesh("", "https://raw.githubusercontent.com/LTDat-HustK65/GP/master/server/src/public/models/", "Biceps.STL", scene, function (newMeshes) {
+    var importedMesh = newMeshes[0];
+    importedMesh.setPivotPoint(new BABYLON.Vector3(0, 0, 0));
+    importedMesh.parent = Biceps;
+    importedMesh.position.x = 7; 
+    importedMesh.position.y = -26; 
+    importedMesh.position.z = -29; 
+    importedMesh.rotation.x = -1.5707963267948966; // góc xoay ban đầu trên trục x (rad)
+    importedMesh.rotation.y = 0; // góc xoay ban đầu trên trục y (rad)
+    importedMesh.rotation.z = -1.5707963267948966; // góc xoay ban đầu trên trục z (rad)
+    importedMesh.material = new BABYLON.StandardMaterial("importedMeshMaterial", scene);
+    importedMesh.material.diffuseColor = new BABYLON.Color3(0, 0, 0);
+});
+BABYLON.SceneLoader.ImportMesh("", "https://raw.githubusercontent.com/LTDat-HustK65/GP/master/server/src/public/models/", "Arm.STL", scene, function (newMeshes) {
+    var importedMesh = newMeshes[0];
+    importedMesh.setPivotPoint(new BABYLON.Vector3(0, 0, 0));
+    importedMesh.parent = Arm;
+    importedMesh.position.x = 12; 
+    importedMesh.position.y = -20; 
+    importedMesh.position.z = -24; 
+    importedMesh.rotation.x = 0;
+    importedMesh.rotation.y = 0; 
+    importedMesh.rotation.z = 1.5707963267948966;
+    importedMesh.material = new BABYLON.StandardMaterial("importedMeshMaterial", scene);
+    importedMesh.material.diffuseColor = new BABYLON.Color3(0.5, 0.5, 0.5); 
+});
+BABYLON.SceneLoader.ImportMesh("", "https://raw.githubusercontent.com/LTDat-HustK65/GP/master/server/src/public/models/", "Wrist.STL", scene, function (newMeshes) {
+    var importedMesh = newMeshes[0];
+    importedMesh.setPivotPoint(new BABYLON.Vector3(0, 0, 0));
+    importedMesh.parent = Wrist;
+    importedMesh.position.x = 12; 
+    importedMesh.position.y = -20; 
+    importedMesh.position.z = 6; 
+    importedMesh.rotation.x = 0; 
+    importedMesh.rotation.y = 0; 
+    importedMesh.rotation.z = 1.5707963267948966; 
+    importedMesh.material = new BABYLON.StandardMaterial("importedMeshMaterial", scene);
+    importedMesh.material.diffuseColor = new BABYLON.Color3(0.5, 0.5, 0.5); 
+});
+BABYLON.SceneLoader.ImportMesh("", "https://raw.githubusercontent.com/LTDat-HustK65/GP/master/server/src/public/models/", "Hand.STL", scene, function (newMeshes) {
+    var importedMesh = newMeshes[0];
+    importedMesh.setPivotPoint(new BABYLON.Vector3(0, 0, 0));
+    importedMesh.parent = Hand;
+    importedMesh.position.x = 26; 
+    importedMesh.position.y = 9; 
+    importedMesh.position.z = -15; 
+    importedMesh.rotation.x = 0; 
+    importedMesh.rotation.y = 0; 
+    importedMesh.rotation.z = 3.141592653589793; 
+    importedMesh.material = new BABYLON.StandardMaterial("importedMeshMaterial", scene);
+    importedMesh.material.diffuseColor = new BABYLON.Color3(0, 0, 0); // Color rojo
+});
+BABYLON.SceneLoader.ImportMesh("", "https://raw.githubusercontent.com/LTDat-HustK65/GP/master/server/src/public/models/", "Gear.STL", scene, function (newMeshes) {
+    var importedMesh = newMeshes[0];
+    importedMesh.setPivotPoint(new BABYLON.Vector3(0, 0, 0));
+    importedMesh.parent = Hand;
+    importedMesh.position.x = 5; 
+    importedMesh.position.y = -57; 
+    importedMesh.position.z = 14; 
+    importedMesh.rotation.x = 0; 
+    importedMesh.rotation.y = 0; 
+    importedMesh.rotation.z = 0; 
+    importedMesh.material = new BABYLON.StandardMaterial("importedMeshMaterial", scene);
+    importedMesh.material.diffuseColor = new BABYLON.Color3(0.8, 0.3, 0); // Color verde
+});
+BABYLON.SceneLoader.ImportMesh("", "https://raw.githubusercontent.com/LTDat-HustK65/GP/master/server/src/public/models/", "Gear.STL", scene, function (newMeshes) {
+    var importedMesh = newMeshes[0];
+    importedMesh.setPivotPoint(new BABYLON.Vector3(0, 0, 0));
+    importedMesh.parent = Hand;
+    importedMesh.position.x = 10; 
+    importedMesh.position.y = -54; 
+    importedMesh.position.z = 18; 
+    importedMesh.rotation.x = 3.141592653589793; 
+    importedMesh.rotation.y = 0; 
+    importedMesh.rotation.z = 2.85; 
+    importedMesh.material = new BABYLON.StandardMaterial("importedMeshMaterial", scene);
+    importedMesh.material.diffuseColor = new BABYLON.Color3(0.8, 0.3, 0); // Color azul
+});
+BABYLON.SceneLoader.ImportMesh("", "https://raw.githubusercontent.com/LTDat-HustK65/GP/master/server/src/public/models/", "Thews.STL", scene, function (newMeshes) {
+    var importedMesh = newMeshes[0];
+    importedMesh.setPivotPoint(new BABYLON.Vector3(0, 0, 0));
+    importedMesh.parent = Hand;
+    importedMesh.position.x = 50; 
+    importedMesh.position.y = -60; 
+    importedMesh.position.z = 15; 
+    importedMesh.rotation.x = 0; 
+    importedMesh.rotation.y = 0; 
+    importedMesh.rotation.z = 3.141592653589793; 
+    importedMesh.material = new BABYLON.StandardMaterial("importedMeshMaterial", scene);
+    importedMesh.material.diffuseColor = new BABYLON.Color3(0.8, 0.3, 0); // Color verde
+});
+BABYLON.SceneLoader.ImportMesh("", "https://raw.githubusercontent.com/LTDat-HustK65/GP/master/server/src/public/models/", "Thews.STL", scene, function (newMeshes) {
+    var importedMesh = newMeshes[0];
+    importedMesh.setPivotPoint(new BABYLON.Vector3(0, 0, 0));
+    importedMesh.parent = Hand;
+    importedMesh.position.x = 7; 
+    importedMesh.position.y = -60; 
+    importedMesh.position.z = 15; 
+    importedMesh.rotation.x = 0; 
+    importedMesh.rotation.y = 0; 
+    importedMesh.rotation.z = 3.28; 
+    importedMesh.material = new BABYLON.StandardMaterial("importedMeshMaterial", scene);
+    importedMesh.material.diffuseColor = new BABYLON.Color3(0.8, 0.3, 0); // Color azul
+});
+BABYLON.SceneLoader.ImportMesh("", "https://raw.githubusercontent.com/LTDat-HustK65/GP/master/server/src/public/models/", "Thews.STL", scene, function (newMeshes) {
+    var importedMesh = newMeshes[0];
+    importedMesh.setPivotPoint(new BABYLON.Vector3(0, 0, 0));
+    importedMesh.parent = Hand;
+    importedMesh.position.x = 50; 
+    importedMesh.position.y = -60; 
+    importedMesh.position.z = 0; 
+    importedMesh.rotation.x = 0; 
+    importedMesh.rotation.y = 0; 
+    importedMesh.rotation.z = 3.141592653589793; 
+    importedMesh.material = new BABYLON.StandardMaterial("importedMeshMaterial", scene);
+    importedMesh.material.diffuseColor = new BABYLON.Color3(0.8, 0.3, 0); // Color verde
+});
+BABYLON.SceneLoader.ImportMesh("", "https://raw.githubusercontent.com/LTDat-HustK65/GP/master/server/src/public/models/", "Thews.STL", scene, function (newMeshes) {
+    var importedMesh = newMeshes[0];
+    importedMesh.setPivotPoint(new BABYLON.Vector3(0, 0, 0));
+    importedMesh.parent = Hand;
+    importedMesh.position.x = 7; 
+    importedMesh.position.y = -60; 
+    importedMesh.position.z = 0; 
+    importedMesh.rotation.x = 0; 
+    importedMesh.rotation.y = 0; 
+    importedMesh.rotation.z = 3.28; 
+    importedMesh.material = new BABYLON.StandardMaterial("importedMeshMaterial", scene);
+    importedMesh.material.diffuseColor = new BABYLON.Color3(0.8, 0.3, 0); // Color azul
+});
+BABYLON.SceneLoader.ImportMesh("", "https://raw.githubusercontent.com/LTDat-HustK65/GP/master/server/src/public/models/", "Claws.stl", scene, function (newMeshes) {
+    var importedMesh = newMeshes[0];
+    importedMesh.setPivotPoint(new BABYLON.Vector3(0, 0, 0));
+    importedMesh.parent = GearLeft;
+    importedMesh.position.x = 29; 
+    importedMesh.position.y = -99; 
+    importedMesh.position.z = -50; 
+    importedMesh.rotation.x = 2.85; 
+    importedMesh.rotation.y = - Math.PI / 2; 
+    importedMesh.rotation.z = Math.PI; 
+    importedMesh.material = new BABYLON.StandardMaterial("importedMeshMaterial", scene);
+    importedMesh.material.diffuseColor = new BABYLON.Color3(0.8, 0.3, 0); // Color verde
+});
+BABYLON.SceneLoader.ImportMesh("", "https://raw.githubusercontent.com/LTDat-HustK65/GP/master/server/src/public/models/", "Claws.stl", scene, function (newMeshes) {
+    var importedMesh = newMeshes[0];
+    importedMesh.setPivotPoint(new BABYLON.Vector3(0, 0, 0));
+    importedMesh.parent = GearRight;
+    importedMesh.position.x = -2; 
+    importedMesh.position.y = -99; 
+    importedMesh.position.z = -58; 
+    importedMesh.rotation.x = 0.60; 
+    importedMesh.rotation.y = (- Math.PI / 2); 
+    importedMesh.rotation.z = 0; 
+    importedMesh.material = new BABYLON.StandardMaterial("importedMeshMaterial", scene);
+    importedMesh.material.diffuseColor = new BABYLON.Color3(0.8, 0.3, 0); // Color azul
+});
+
+
+
+// resize window 
+window.addEventListener("resize", function () {
+    engine.resize();
+});
+
+    // Tạo parents cho các phần tử của cánh tay robot
+    var Base = BABYLON.MeshBuilder.CreateCylinder("Base", { height: 0.2, diameter: 4 }, scene);
+    Base.position.y = 0.1;
+
+    var BaseUpper = BABYLON.MeshBuilder.CreateBox("BaseUpper", { width: 2, height: 0.2, depth: 1 }, scene);
+    BaseUpper.position.y = 0.1;
+    BaseUpper.parent = Base;
+
+    var Servo01 = BABYLON.MeshBuilder.CreateDisc("Servo01", { radius: 0.5, tessellation: 50 }, scene);
+    Servo01.position.y = 95;
+    Servo01.position.x = -10;
+    Servo01.position.z = 14;
+    Servo01.parent = BaseUpper;
+
+    var Biceps = BABYLON.MeshBuilder.CreateBox("Biceps", { width: 1, height: 3, depth: 1 }, scene);
+    Biceps.position.y = 1.5;
+    Biceps.parent = Servo01;
+
+    var Servo02 = BABYLON.MeshBuilder.CreateDisc("Servo02", { radius: 0.3, tessellation: 50 }, scene);
+    Servo02.position.y = 120;
+    Servo02.parent = Biceps;
+
+    var Arm = BABYLON.MeshBuilder.CreateBox("Arm", { width: 1, height: 3, depth: 1 }, scene);
+    Arm.position.y = 1.5;
+    Arm.parent = Servo02;
+
+    var Servo03 = BABYLON.MeshBuilder.CreateDisc("Servo03", { radius: 0.3, tessellation: 50 }, scene);
+    Servo03.position.z = 85;
+    Servo03.parent = Arm;
+
+    var Wrist = BABYLON.MeshBuilder.CreateBox("Wrist", { width: 1, height: 1, depth: 1 }, scene);
+    Wrist.position.y = 0;
+    Wrist.parent = Servo03;
+
+    var Servo04 = BABYLON.MeshBuilder.CreateDisc("Servo04", { radius: 0.3, tessellation: 50 }, scene);
+    Servo04.position.z = 33;
+    Servo04.parent = Hand;
+
+    var Hand = BABYLON.MeshBuilder.CreateBox("Hand", { width: 1, height: 1, depth: 1 }, scene);
+    Hand.position.z = 33;
+    Hand.parent = Wrist;
+
+    var ClawsBase = BABYLON.MeshBuilder.CreateBox("ClawsBase", { width: 1, height: 1, depth: 1}, scene);
+    ClawsBase.position.z = 33;
+    ClawsBase.parent = Hand;
+
+    var GearLeft = BABYLON.MeshBuilder.CreateBox("gearLeft", { width: 1, height: 1, depth: 1 }, scene);
+    GearLeft.position.z = 33;
+    // GearLeft.rotation.z = 1.5707963267948966;
+    GearLeft.parent = ClawsBase;
+
+    var GearRight = BABYLON.MeshBuilder.CreateBox("gearRight", { width: 1, height: 1, depth: 1 }, scene);
+    GearRight.position.z = 33;
+    GearRight.parent = ClawsBase;
+
+    var Servo05 = BABYLON.MeshBuilder.CreateDisc("Servo05", { radius: 0.3, tessellation: 50 }, scene);
+    Servo05.position.z = 83;
+    Servo05.parent = ClawsBase;
+
+    var Claws = BABYLON.MeshBuilder.CreateBox("Claws", { width: 1, height: 1, depth: 1 }, scene);
+    Claws.position.z = 33;
+    Claws.parent = GearLeft;
+
+    
+
+
+        // Gán material cho các phần tử
+        Base.material = new BABYLON.StandardMaterial("baseMat", scene);
+        Base.material.diffuseColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+
+        BaseUpper.material = new BABYLON.StandardMaterial("BaseUpperMat", scene);
+        BaseUpper.material.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+
+        Servo01.material = new BABYLON.StandardMaterial("Servo01Mat", scene);
+        Servo01.material.diffuseColor = new BABYLON.Color3(0.6, 0.6, 0.6);
+
+        Biceps.material = new BABYLON.StandardMaterial("BicepsMat", scene);
+        Biceps.material.diffuseColor = new BABYLON.Color3(0.8, 0.8, 0.8);
+
+        Servo02.material = new BABYLON.StandardMaterial("Servo02Mat", scene);
+        Servo02.material.diffuseColor = new BABYLON.Color3(1, 1, 1);
+
+        Arm.material = new BABYLON.StandardMaterial("ArmMat", scene);
+        Arm.material.diffuseColor = new BABYLON.Color3(0.8, 0.8, 0.8);
+
+        Servo03.material = new BABYLON.StandardMaterial("Servo03Mat", scene);
+        Servo03.material.diffuseColor = new BABYLON.Color3(0.6, 0.6, 0.6);
+
+        Wrist.material = new BABYLON.StandardMaterial("WristMat", scene);
+        Wrist.material.diffuseColor = new BABYLON.Color3(0.8, 0.8, 0.8);
+
+        Servo04.material = new BABYLON.StandardMaterial("Servo04Mat", scene);
+        Servo04.material.diffuseColor = new BABYLON.Color3(0.6, 0.6, 0.6);
+
+        Hand.material = new BABYLON.StandardMaterial("HandMat", scene);
+        Hand.material.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+
+        GearLeft.material = new BABYLON.StandardMaterial("GearLeftMat", scene);
+        GearLeft.material.diffuseColor = new BABYLON.Color3(0.9, 0.9, 0.9);
+
+        GearRight.material = new BABYLON.StandardMaterial("GearRightMat", scene);
+        GearRight.material.diffuseColor = new BABYLON.Color3(0.9, 0.9, 0.9);
+    
+        Claws.material = new BABYLON.StandardMaterial("ClawsMat", scene);
+        Claws.material.diffuseColor = new BABYLON.Color3(0.5, 0.5, 0.5);
+
+        ClawsBase.material = new BABYLON.StandardMaterial("ClawsBaseMat", scene);
+        ClawsBase.material.diffuseColor = new BABYLON.Color3(0.5, 0.5, 0.5);
+
+        // bắt đầu render
+        engine.runRenderLoop(function () {
+            scene.render();
+        });
+
+        // Điều khiển cánh tay bằng bàn phím
+        var rotationSpeed = Math.PI / 80;// góc tính bằng radian
+        // var cobotState = {
+        //     BaseUpperState: Number,
+        //     Servo01State: Number,
+        //     Servo02State: Number,
+        //     Servo03State: Number,
+        //     Servo04State: Number,
+        //     Servo05State: Number
+        // };
+        window.addEventListener("keydown", function (event) {// envent.key: trả về phím đã được nhấn
+            switch (event.key) {// điều khiển cánh tay bằng bàn phím
+                case "a":// xoay đế sang phải
+                RotateBaseRight(); 
+                    break;
+                case "s":// xoay đế sang trái
+                RotateBaseLeft()
+                    console.log(BaseUpper.rotation.y)
+                    break;
+                case "e":// ngửa khớp 1 lên
+                    RotateServo01Up();
+                    break;
+                case "r":// cúi khớp 1 xuống
+                    RotateServo01Down()                   
+                    break;   
+                case "z":// ngửa khớp 2 lên
+                    RotateServo02Up();
+                    break;
+                case "x":// cúi khớp 2 xuống
+                    RotateServo02Down();
+                    break;
+                case "f":// xoay kẹp sang phải
+                    RotateClawRight();
+                    break;
+                case "g":// xoay kẹp sang trái
+                    RotateClawLeft();
+                    break;
+                case "c":// ngửa khớp 3 (kẹp) lên
+                    RotateClawUp();
+                    break;
+                case "v":// cúi khớp 3 (kẹp) xuống
+                    RotateClawDown()
+                    break;
+                case "q":// kẹp đồ vật
+                    RotateClaw()
+                    break;
+                case "w":// thả đồ vật
+                    ReleaseClaw()
+                    break;
+            }
+        });
+
+function RotateBaseRight() {// Hàm xoay đế sang phải
+    BaseUpper.rotation.y -= rotationSpeed;//rotationSpeed = 0.16
+    console.log(BaseUpper.rotation.y);
+    if(BaseUpper.rotation.y <= -Math.PI){
+        return BaseUpper.rotation.y = - Math.PI;
+    }
+}
+function RotateBaseLeft() {// Hàm xoay đế sang trái
+    BaseUpper.rotation.y += rotationSpeed;
+    console.log(BaseUpper.rotation.y);
+    if(BaseUpper.rotation.y >= Math.PI){
+        return BaseUpper.rotation.y = Math.PI;
+    }
+}
+function RotateServo01Up() {// Hàm ngửa khớp 1 lên
+    Servo01.rotation.x -= rotationSpeed;
+    console.log(Servo01.rotation.x);
+    if(Servo01.rotation.x <= -1.6){
+        return Servo01.rotation.x = -1.6;
+    }
+}
+function RotateServo01Down() {// Hàm cúi khớp 1 xuống
+    Servo01.rotation.x += rotationSpeed;
+    console.log(Servo01.rotation.x);
+    if(Servo01.rotation.x >= 1.6){
+        return Servo01.rotation.x = 1.6;
+    }
+}
+function RotateServo02Up() {// Hàm ngửa khớp 2 lên
+    Servo02.rotation.x -= rotationSpeed;
+    console.log(Servo02.rotation.x);
+    if(Servo02.rotation.x <= -4){
+        return Servo02.rotation.x = -4;
+    }
+}
+function RotateServo02Down() {// Hàm cúi khớp 2 xuống
+    Servo02.rotation.x += rotationSpeed;
+    console.log(Servo02.rotation.x);
+    if(Servo02.rotation.x >= 4){
+        return Servo02.rotation.x = 4;
+    }
+}
+function RotateClawRight(){// Hàm xoay kẹp sang phải
+    Servo03.rotation.z -= rotationSpeed;
+    console.log(Servo03.rotation.z);
+    if(Servo03.rotation.z <= -Math.PI){
+        return Servo03.rotation.z = -Math.PI;
+    }
+}
+function RotateClawLeft(){// Hàm xoay kẹp sang trái
+    Servo03.rotation.z += rotationSpeed;
+    console.log(Servo03.rotation.z);
+    if(Servo03.rotation.z >= Math.PI){
+        return Servo03.rotation.z = Math.PI;
+    }
+}
+function RotateClawUp(){// Hàm ngửa khớp 3 (kẹp) lên
+    Servo04.rotation.x -= rotationSpeed;
+    Hand.rotation.x -= rotationSpeed;  
+    console.log(Hand.rotation.x);
+    if(Hand.rotation.x <= -2.6){
+        return Hand.rotation.x = -2.6;
+    }
+}
+function RotateClawDown(){// Hàm cúi khớp 3 (kẹp) xuống
+    Servo04.rotation.x += rotationSpeed;
+    Hand.rotation.x += rotationSpeed;
+    console.log(Hand.rotation.x);
+    if(Hand.rotation.x >= 0.6){
+        return Hand.rotation.x = 0.6;
+    }
+}
+function RotateClaw(){// Hàm kẹp đồ vật
+    Servo05.rotation.z -= rotationSpeed;
+    GearLeft.rotation.z -= rotationSpeed;
+    GearRight.rotation.z += rotationSpeed;
+    console.log(GearLeft.rotation.z, GearRight.rotation.z, GearLeft.rotation.z - GearRight.rotation.z)
+    if((GearLeft.rotation.z - GearRight.rotation.z) <= -0.5){
+        GearLeft.rotation.z = -0.25;
+        GearRight.rotation.z = 0.25;
+        return;
+    }
+}
+function ReleaseClaw(){// Hàm thả đồ vật
+    Servo05.rotation.z += rotationSpeed;
+    GearRight.rotation.z -= rotationSpeed;
+    GearLeft.rotation.z += rotationSpeed;
+    console.log(GearLeft.rotation.z, GearRight.rotation.z, GearLeft.rotation.z - GearRight.rotation.z)
+    if((GearLeft.rotation.z - GearRight.rotation.z) >= 0){
+        GearLeft.rotation.z = 0;
+        GearRight.rotation.z = 0;
+        return;
+    }
+}
+
+let baseRightInterval;
+let baseLeftInterval;
+let servo01UpInterval;
+let servo01DownInterval;
+let servo02UpInterval;
+let servo02DownInterval;
+let clawRightInterval;
+let clawLeftInterval;
+let clawUpInterval;
+let clawDownInterval;
+let clawInterval;
+let releaseClawInterval;
+
+// Hàm điều khiển cánh tay bằng socket
+function BaseRightController(data){
+    if(BaseUpper.rotation.y > -data){
+        //console.log('Debug !!!!!!', data);
+        baseRightInterval = setInterval( () => {
+            RotateBaseRight();
+            if(BaseUpper.rotation.y <= -data){
+                clearInterval(baseRightInterval);
+                return BaseUpper.rotation.y = -data;
+            }
+        }, 100);    
+    } 
+}
+function BaseLeftController(data){
+    if(BaseUpper.rotation.y < data){
+        baseLeftInterval = setInterval( () => {
+            RotateBaseLeft();
+            if(BaseUpper.rotation.y >= data){
+                clearInterval(baseLeftInterval);
+                return BaseUpper.rotation.y = data;
+            }
+        }, 100);    
+    } 
+}
+function Servo01UpController(data){
+    if(Servo01.rotation.x > -data){
+        servo01UpInterval = setInterval( () => {
+            RotateServo01Up();
+            if(Servo01.rotation.x <= -data){
+                clearInterval(servo01UpInterval);
+                return Servo01.rotation.x = -data;
+            }
+        }, 100);    
+    } 
+}
+function Servo01DownController(data){
+    if(Servo01.rotation.x < data){
+        servo01DownInterval = setInterval( () => {
+            RotateServo01Down();
+            if(Servo01.rotation.x >= data){
+                clearInterval(servo01DownInterval);
+                return Servo01.rotation.x = data;
+            }
+        }, 100);    
+    } 
+}
+function Servo02UpController(data){
+    if(Servo02.rotation.x > -data){
+        servo02UpInterval = setInterval( () => {
+            RotateServo02Up();
+            if(Servo02.rotation.x <= -data){
+                clearInterval(servo02UpInterval);
+                return Servo02.rotation.x = -data;
+            }
+        }, 100);    
+    } 
+}
+function Servo02DownController(data){
+    if(Servo02.rotation.x < data){
+        servo02DownInterval = setInterval( () => {
+            RotateServo02Down();
+            if(Servo02.rotation.x >= data){
+                clearInterval(servo02DownInterval);
+                return Servo02.rotation.x = data;
+            }
+        }, 100);    
+    } 
+}
+function ClawRightController(data){
+    if(Servo03.rotation.z > -data){
+        clawRightInterval = setInterval( () => {
+            RotateClawRight();
+            if(Servo03.rotation.z <= -data){
+                clearInterval(clawRightInterval);
+                return Servo03.rotation.z = -data;
+            }
+        }, 100);    
+    } 
+}
+function ClawLeftController(data){
+    if(Servo03.rotation.z < data){
+        clawLeftInterval = setInterval( () => {
+            RotateClawLeft();
+            if(Servo03.rotation.z >= data){
+                clearInterval(clawLeftInterval);
+                return Servo03.rotation.z = data;
+            }
+        }, 100);    
+    } 
+}
+function ClawUpController(data){
+    if(Hand.rotation.x > -data){
+        clawUpInterval = setInterval( () => {
+            RotateClawUp();
+            if(Hand.rotation.x <= -data){
+                clearInterval(clawUpInterval);
+                return Hand.rotation.x = -data;
+            }
+        }, 100);    
+    } 
+}
+function ClawDownController(data){
+    if(Hand.rotation.x < data){
+        clawDownInterval = setInterval( () => {
+            RotateClawDown();
+            if(Hand.rotation.x >= data){
+                clearInterval(clawDownInterval);
+                return Hand.rotation.x = data;
+            }
+        }, 100);    
+    } 
+}
+function ClawController(data){
+    clawInterval = setInterval( () => {
+        RotateClaw();
+        if((GearLeft.rotation.z - GearRight.rotation.z) <= -data){
+            GearLeft.rotation.z = -data/2;
+            GearRight.rotation.z = data/2;
+            clearInterval(clawInterval);
+            return;
+        }
+    }, 100);    
+}
+function ReleaseClawController(data){
+    releaseClawInterval = setInterval( () => {
+        ReleaseClaw();
+        if((GearLeft.rotation.z - GearRight.rotation.z) >= 0){
+            GearLeft.rotation.z = 0;
+            GearRight.rotation.z = 0;
+            clearInterval(releaseClawInterval);
+            return;
+        }
+    }, 100);    
+}
+
+
+
+function CreateObject(){
+    var timeAppear = new Date();
+
+    // var random = Math.floor(Math.random() * 2);
+
+    // Import file .stl sinh quả táo hoặc cam ngẫu nhiên
+    // if (random == 0) {
+        BABYLON.SceneLoader.ImportMesh("Apple", "https://raw.githubusercontent.com/LTDat-HustK65/GP/master/server/src/public/models/", "Apple.stl", scene, function(newMeshes) {
+    var importedMesh = newMeshes[0];
+    importedMesh.parent = Object;
+    importedMesh.scaling = new BABYLON.Vector3(30, 30, 30);
+    importedMesh.setPivotPoint(new BABYLON.Vector3(0, 0, 0));
+    importedMesh.position.x = -140;
+    importedMesh.position.y = 130;
+    importedMesh.position.z = 190;
+    importedMesh.material = new BABYLON.StandardMaterial("importedMeshMaterial", scene);
+    importedMesh.material.diffuseColor = new BABYLON.Color3(1, 0, 0);
+    });
+
+    // } else {
+    //     BABYLON.SceneLoader.ImportMesh("Orange", "https://raw.githubusercontent.com/LTDat-HustK65/GP/master/server/src/public/models/", "Orange.stl", scene, function(newMeshes) {
+    // var importedMesh = newMeshes[0];
+    // importedMesh.parent = Object;
+    // importedMesh.scaling = new BABYLON.Vector3(30, 30, 30);
+    // importedMesh.setPivotPoint(new BABYLON.Vector3(0, 0, 0));
+    // importedMesh.position.x = -140;
+    // importedMesh.position.y = 130;
+    // importedMesh.position.z = 190;
+    // importedMesh.material = new BABYLON.StandardMaterial("importedMeshMaterial", scene);
+    // importedMesh.material.diffuseColor = new BABYLON.Color3(1, 0.5, 0);
+    //     });
+    // }
+    
+    // Tạo parent cho vật thể  
+    var Object = BABYLON.MeshBuilder.CreateSphere("Object", { diameter: 1 }, scene);
+    Object.position.x = -140;
+
+    // Gọi hàm di chuyển vật thể mỗi 50ms
+    intervalObject = setInterval(MovingObject(Object, timeAppear),50);
+    
+}
+// Hàm di chuyển đối tượng trên đường thẳng
+function MovingObject(object, timeAppear) {
+    return function() {
+        const timeNow = new Date();
+        
+        var dentalTime = (timeNow.getTime() - timeAppear.getTime()) / 1000;
+
+        // tốc độ di chuyển của quả táo là hằng số bằng 15
+        object.position.x = -140 + dentalTime * 15;
+        console.log('Tọa độ táo: ', object.position.x);
+
+        if (object.position.x >= 130) {
+            
+            intervalCobot = setInterval(MovingCobot(object,timeAppear), 50);
+                        
+            console.log('Táo đã đến!!!');
+        }
+    }
+}
+// Hàm tính thời gian tới biển bị gạt của vật thể
+function CaculateDropTime(timeAppear){
+    // console.log(new Date(timeAppear.getTime()/1000 + 280/15))
+    // console.log(timeAppear.getTime()/1000 + 280/15)
+    return (new Date(timeAppear.getTime() + 270*1000/15));// 270 là khoảng cách từ điểm xuất hiện đến điểm bị gạt
+}
+// Hàm di chuyển cánh tay
+function MovingCobot(object, timeAppear){
+        var dropTime = CaculateDropTime(timeAppear);
+        const timeNow = new Date();
+
+        var dentalTime = (timeNow.getTime() - dropTime.getTime()) / 1000;
+        console.log('Thời gian: ', dentalTime);
+
+        Servo04.rotation.x -= dentalTime * Math.PI/50;
+        Hand.rotation.x -= dentalTime * Math.PI/50;
+        object.position.z += dentalTime * 15;
+        console.log('Góc quay Servo04: ', Servo04.rotation.x);
+
+       if(Servo04.rotation.x <= -(Math.PI/4)){
+        while (Servo04.rotation.x <=0) {
+            Servo04.rotation.x += dentalTime * Math.PI/50;
+            Hand.rotation.x += dentalTime * Math.PI/50;
+            
+            object.position.y -=  dentalTime * 15;
+            console.log('Tọa độ táo: ', object.position.y);
+            console.log('Góc quay Servo04: ', Servo04.rotation.x);
+            if (Servo04.rotation.x >= 0) {
+                clearInterval(intervalObject);
+                console.log('Đã rơi vào giỏ!!!');
+                console.log('Thời điểm xuất hiện: ', timeAppear);
+                console.log('Thời điểm rơi vào giỏ: ', dropTime);
+                
+                return; // Dừng hàm nếu Servo04.rotation.x <= -0.5
+            }
+              
+        }
+    }
+}
+// xử lý thay đổi kích thước cửa sổ
+window.addEventListener("resize", function () {
+    engine.resize();
+});
+
+// Tạo kết nối websocket
+const socket = io("http://localhost:3030");
+
+// Lắng nghe sự kiện từ server
+socket.on("connect", () => {
+    console.log("Connected to server");
+    // Gửi thông báo kết nối thành công
+    socket.emit("client-connected", "Client connected");
+});
+
+// Lắng nghe sự kiện từ server
+socket.on("RotateBaseRight", (data) => {
+    console.log("Rotating Base rightway ...!");
+    BaseRightController(data); 
+});
+socket.on("RotateBaseLeft", (data) => {
+    console.log("Rotating Base leftway ...!");
+    BaseLeftController(data);
+});
+socket.on("RotateServo01Up", (data) => {
+    console.log("Rotating Servo01 upway ...!");
+    Servo01UpController(data);
+    //console.log('Debug !!!!!!', data);
+});
+socket.on("RotateServo01Down", (data) => {
+    console.log("Rotating Servo01 downway ...!");
+    Servo01DownController(data);
+});
+socket.on("RotateServo02Up", (data) => {
+    console.log("Rotating Servo02 upway ...!");
+    Servo02UpController(data);
+});
+socket.on("RotateServo02Down", (data) => {
+    console.log("Rotating Servo02 downway ...!");
+    Servo02DownController(data);
+});
+socket.on("RotateClawRight", (data) => {
+    console.log("Rotating Claw rightway ...!");
+    ClawRightController(data);
+});
+socket.on("RotateClawLeft", (data) => {
+    console.log("Rotating Claw leftway ...!");
+    ClawLeftController(data);
+});
+socket.on("RotateClawUp", (data) => {
+    console.log("Rotating Claw upway ...!");
+    ClawUpController(data);
+});
+socket.on("RotateClawDown", (data) => {
+    console.log("Rotating Claw downway ...!");
+    ClawDownController(data);
+});
+socket.on("RotateClaw", (data) => {
+    console.log("Rotating Claw close...!");
+    ClawController(data);
+});
+socket.on("ReleaseClaw", (data) => {
+    console.log("Releasing Claw ...!");
+    ReleaseClawController(data);
+});
+
+
     </script>
 </body>
 </html>
