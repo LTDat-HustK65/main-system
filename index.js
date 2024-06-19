@@ -6,8 +6,8 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const http = require('http');
 const socketIo = require('socket.io');
-//const fs = require('fs');
 
+dotenv.config();
 
 const Cobot_api = require('./src/routes/cobot-api');
 const Object_api = require('./src/routes/object-api');
@@ -28,29 +28,34 @@ mongoose.connect(process.env.MONGODB_URL, {
 
 
 const app = express();
-const server = http.creatServer(app);
-const io = socketIo(server, {
-  cors: {
-    origin: '*',
-  }
-});
+const server = http.createServer(app);
+// const io = socketIo(server, {
+//   cors: {
+//     origin: '*',
+//   }
+// });
+const io = socketIo(server);
 
 const PORT = process.env.PORT || 3030;
 // const privateKey = fs.readFileSync('./src/certs/private.key');
 // const certificate = fs.readFileSync('./src/certs/public.crt');
 // const credentials = {key: privateKey, cert: certificate};
 
-dotenv.config();
+
 
 app.use(express.json());
 app.use(cors());
 app.use(bodyParser.json());
 
 
+// Middleware để thêm io vào req để có thể sử dụng trong router
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
 
-app.use('/public', express.static(path.join(__dirname, '/src/views')));
-app.use('/test', express.static('/src/views/test.html'));
 
+app.use(express.static(path.join(__dirname, 'src/views/demo')));
 
 app.use('/cobot_api', Cobot_api);
 app.use('/user_api', User_api);
@@ -61,11 +66,14 @@ app.use('/programming_api', Programming_api);
 io.on('connection', (socket) => {
   console.log('New client connected')
 
-  socket.on('messageFromClient', (data) => {
-    console.log('Received message from client: ', data.message);
-    const response = { message: 'Hello from the server!', timestamp: Date.now() };
-    socket.emit('messageFromServer', response);
-  });
+  // socket.on('messageFromClient', (data) => {
+  //   console.log('Received message from client: ', data.message);
+  //   const response = { message: 'Hello from the server!', timestamp: Date.now() };
+  //   socket.emit('messageFromServer', response);
+  // });
+
+  // Gửi tin nhắn tới client
+  socket.emit('message', 'Hello from server!');
 
   socket.on('disconnect', () => {
     console.log('Client disconnected');
@@ -73,6 +81,9 @@ io.on('connection', (socket) => {
 });
 
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`http://localhost:${PORT}/demo-cobot-client.html`);
+  console.log(`http://localhost:${PORT}/demo-user-client.html`);
+  console.log(`http://localhost:${PORT}/demo-programmer-client.html`);
 });

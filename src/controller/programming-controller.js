@@ -34,7 +34,7 @@ const EditWork = async (req, res) => {
 
 const DeleteWork = async (req, res) => {
     //method: DELETE
-    try {
+    try { 
         const work = await Work.findByIdAndDelete(req.body.name);
         res.status(200).send(work);
     } catch (error) {

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket.IO Example - Index</title>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <h1>Socket.IO Client - Index Page</h1>
+    <button id="sendButton">Send Message to Server</button>
+    <script>
+        const socket = io('http://localhost:3030');
+
+        socket.on('message', (message) => {
+            console.log('Message from server: ', message);
+        });
+
+        document.getElementById('sendButton').addEventListener('click', () => {
+            const message = 'Hello from index page!';
+            console.log('Sending message to server: ', message);
+            socket.send(message);
+        });
+    </script>
+</body>
+</html>
