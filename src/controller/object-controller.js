@@ -5,7 +5,7 @@ const axios = require('axios');
 const ObjectDetection = async (req, res) => {
     //method: POST
     try {
-        const object = new Object({
+        const object = new Object({// tạo một object mới
             timeApear: Date.now(),
             properties: {
                 name: req.body.properties.name,
@@ -32,6 +32,19 @@ const ObjectDetection = async (req, res) => {
     }
 }
 
+/*
+    function UpdateObject(req, res) {
+
+    }
+
+    UpdateObject(req, res) => {
+
+    }
+
+    const UpdateObject = (req, res) => {
+
+    }
+*/ 
 const UpdateObject = async (req, res) => {
     //method: PUT
     try {

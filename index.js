@@ -6,6 +6,8 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const http = require('http');
 const socketIo = require('socket.io');
+const axios = require('axios');
+const queue = require('block-queue');
 
 dotenv.config();
 
@@ -62,28 +64,33 @@ app.use('/user_api', User_api);
 app.use('/object_api', Object_api);
 app.use('/programming_api', Programming_api);
 
+let cobotClientSocket = null;
 
 io.on('connection', (socket) => {
-  console.log('New client connected')
+  console.log('New User client connected')
 
-  // socket.on('messageFromClient', (data) => {
-  //   console.log('Received message from client: ', data.message);
-  //   const response = { message: 'Hello from the server!', timestamp: Date.now() };
-  //   socket.emit('messageFromServer', response);
-  // });
-
-  // Gửi tin nhắn tới client
-  socket.emit('message', 'Hello from server!');
+  socket.on('registerClientB', () => {
+    cobotClientSocket = socket;
+    console.log('Cobot client registered');
+  });
 
   socket.on('disconnect', () => {
-    console.log('Client disconnected');
+    console.log('User disconnected');
+    if (socket === cobotClientSocket) {
+      cobotClientSocket = null;
+    }
   });
+  // // Gửi tin nhắn tới client
+  // socket.emit('message', 'Hello from server!');
+  // socket.on('disconnect', () => {
+  //   console.log('Client disconnected');
+  // });
 });
 
 
 server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
-  console.log(`http://localhost:${PORT}/demo-cobot-client.html`);
-  console.log(`http://localhost:${PORT}/demo-user-client.html`);
+  console.log(`http://localhost:${PORT}/demo-cobot-client.html`);  
   console.log(`http://localhost:${PORT}/demo-programmer-client.html`);
+  //console.log(`http://localhost:${PORT}/demo-user-client.html`);
 });
