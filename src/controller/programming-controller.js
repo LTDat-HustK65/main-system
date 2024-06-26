@@ -67,7 +67,6 @@ const SaveProgram = async (req, res) => {
     //method: POST
     try {
 
-        console.log('debug1 !', req.body);
         const {appName, apisEntries} = req.body;
 
         let result = {
@@ -75,7 +74,6 @@ const SaveProgram = async (req, res) => {
             apis: {}
         };
 
-        // console.log('debug2 !', apisEntries);
         apisEntries.forEach(entry => {
             result.apis[entry.id] = {
                 name: entry.api,
@@ -83,14 +81,13 @@ const SaveProgram = async (req, res) => {
             }
         });
 
-        console.log('debug2.1 !', result);
         const program = new Program({
             name: result.name,
             apis: result.apis
         });
-        console.log('debug2.2 !');
+
         await program.save();
-        console.log('debug3 !', program);
+
         console.log(`\n CREATEED PROGRAM '${program.name}' SUCCESSFULLY !`);
         console.log('Result:', JSON.stringify(program, null, 2));
         res.status(200).send(program);

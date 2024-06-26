@@ -4,6 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Demo Apps Client</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        button {
+            background-color: orange;
+            color: white;
+            font-size: 24px;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: darkorange;
+        }
+    </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/async/3.2.0/async.min.js"></script>
     <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
@@ -13,7 +34,7 @@
 </head>
 <body>
 
-    <button onclick="GapVatThe()">Demo</button>
+    <button onclick="Demo()">Demo</button>
     <!--<button onclick="CongViec2()">Công việc 2</button>-->
     <div id="queue"></div>
     <script>
@@ -37,7 +58,7 @@
             }
         }
 
-        async function GapVatThe() {
+        async function Demo() {
             apiQueue.push(callApi('http://localhost:3030/cobot_api/rotate_base_right', Math.PI/2));//1.57079632
             apiQueue.push(callApi('http://localhost:3030/cobot_api/rotate_servo_01_up', Math.PI/4));//0.785398
 
