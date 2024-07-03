@@ -1,3 +1,4 @@
+const CobotState = require('../models/cobotState-schema');
 const bodyParser = require('body-parser');
 const axios = require('axios');
 

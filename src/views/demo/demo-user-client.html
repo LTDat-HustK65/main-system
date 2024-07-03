@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Demo Apps Client</title>
+    <title>Demo app</title>
     <style>
         body {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            justify-content: center;
             height: 100vh;
             margin: 0;
         }
@@ -24,21 +25,40 @@
         button:hover {
             background-color: darkorange;
         }
+        .form-container {
+            width: 80%;
+            max-width: 600px;
+            margin-top: 20px;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/async/3.2.0/async.min.js"></script>
     <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <!-- <script type="module">
-        import blockQueue from 'https://cdn.jsdelivr.net/npm/block-queue@0.0.2/+esm'
-    </script> -->
 </head>
 <body>
-
-    <button onclick="Demo()">Demo</button>
-    <!--<button onclick="CongViec2()">Công việc 2</button>-->
     <div id="queue"></div>
+    <div class="form-container">
+        <h1>Program edition interface</h1>
+        <form id="appForm">
+            <label for="appName">To do:</label>
+            <input type="text" id="appName" name="appName" required>
+            <br><br>
+            <div id="apiContainer">
+                <div class="apiEntry">
+                    <label>Select Function:</label>
+                    <select class="apiSelect"></select>
+                    <input type="number" class="apiNumber" step="0.000001" required>
+                </div>
+            </div>
+            <br>
+            <button type="button" onclick="addApi()">Add Another Function</button>
+            <br><br>
+            <button type="submit" >Submit</button>
+        </form>
+    </div>
+
     <script>
-        
+
         const apiQueue = async.queue(async function(task, callback) {
             try {
                 console.log('Start task');
@@ -49,7 +69,7 @@
                 callback(error);
             }
         }, 1);
-        
+
         function callApi(url, number) {
             return async function() {
                 console.log('Calling API with URL:', url, 'and number:', number);
@@ -58,17 +78,89 @@
             }
         }
 
-        async function Demo() {
-            apiQueue.push(callApi('http://localhost:3030/cobot_api/rotate_base_right', Math.PI/2));//1.57079632
-            apiQueue.push(callApi('http://localhost:3030/cobot_api/rotate_servo_01_up', Math.PI/4));//0.785398
+        document.addEventListener('DOMContentLoaded', (event) => {
+            fetch('/programming_api/list_api')
+                .then(response => response.json())
+                .then(data => {
+                    populateApiSelects(data);
+                });
+        });
+
+        function populateApiSelects(apis) {
+            const apiSelects = document.getElementsByClassName('apiSelect');
+            for (let select of apiSelects) {
+                apis.forEach(api => {
+                    let option = document.createElement('option');
+                    option.value = api.id;
+                    option.text = api.name;
+                    select.appendChild(option);
+                });
+            }
+        }
+
+        function addApi() {
+            const apiContainer = document.getElementById('apiContainer');
+            const div = document.createElement('div');
+            div.classList.add('apiEntry');
+            div.innerHTML = `
+                <label>Select Function:</label>
+                <select class="apiSelect"></select>
+                <input type="number" class="apiNumber" step="0.000001" required>
+            `;
+            apiContainer.appendChild(div);
+
+            fetch('/programming_api/list_api')
+                .then(response => response.json())
+                .then(data => {
+                    const newSelect = div.querySelector('.apiSelect');
+                    data.forEach(api => {
+                        let option = document.createElement('option');
+                        option.value = api.id;
+                        option.text = api.name;
+                        newSelect.appendChild(option);
+                    });
+                });
+        }
+
+        document.getElementById('appForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const appName = document.getElementById('appName').value;
+            const apisEntries = [];
+            const apiSelects = document.getElementsByClassName('apiSelect');
+            const apiNumbers = document.getElementsByClassName('apiNumber');
+
+            for (let i = 0; i < apiSelects.length; i++) {
+                apisEntries.push({
+                    id: apiSelects[i].value,
+                    api: apiSelects[i].options[apiSelects[i].selectedIndex].text,
+                    amplitude: apiNumbers[i].value
+                });
+
+                apiQueue.push(callApi(apiSelects[i].options[apiSelects[i].selectedIndex].text, apiNumbers[i].value));
+                console.log(i);
+            }
 
             document.getElementById('queue').innerHTML = '<p>Starting API calls...</p>';
-            
+
             apiQueue.drain(() => {
                 console.log('All API calls have been processed.');
                 document.getElementById('queue').innerHTML += '<p>All API calls have been processed.</p>';
             });
-        }
+
+            fetch('/programming_api/save_program', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ appName, apisEntries })
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert(data);
+            });
+        });
+
     </script>
 </body>
 </html>

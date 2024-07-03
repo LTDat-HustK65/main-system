@@ -32,19 +32,6 @@ const ObjectDetection = async (req, res) => {
     }
 }
 
-/*
-    function UpdateObject(req, res) {
-
-    }
-
-    UpdateObject(req, res) => {
-
-    }
-
-    const UpdateObject = (req, res) => {
-
-    }
-*/ 
 const UpdateObject = async (req, res) => {
     //method: PUT
     try {
