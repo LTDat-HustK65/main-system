@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 
 const JointSchema = new Schema({
     ampitude: { type: Number, required: true },
-});
+}); 
 
 const CobotStateSchema = new Schema({
     time: { type: Date, required: true },

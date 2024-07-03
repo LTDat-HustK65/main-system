@@ -15,7 +15,8 @@ const Cobot_api = require('./src/routes/cobot-api');
 const Object_api = require('./src/routes/object-api');
 const User_api = require('./src/routes/user-api');
 const Programming_api = require('./src/routes/programming-api');
-
+const CobotState_api = require('./src/routes/cobotState-api');
+const Event_api = require('./src/routes/event-api');
 
 mongoose.connect(process.env.MONGODB_URL, {
   useNewUrlParser: true,
@@ -31,19 +32,12 @@ mongoose.connect(process.env.MONGODB_URL, {
 
 const app = express();
 const server = http.createServer(app);
-// const io = socketIo(server, {
-//   cors: {
-//     origin: '*',
-//   }
-// });
 const io = socketIo(server);
 
 const PORT = process.env.PORT || 3030;
 // const privateKey = fs.readFileSync('./src/certs/private.key');
 // const certificate = fs.readFileSync('./src/certs/public.crt');
 // const credentials = {key: privateKey, cert: certificate};
-
-
 
 app.use(express.json());
 app.use(cors());
@@ -63,6 +57,8 @@ app.use('/cobot_api', Cobot_api);
 app.use('/user_api', User_api);
 app.use('/object_api', Object_api);
 app.use('/programming_api', Programming_api);
+app.use('/cobot_state_api', CobotState_api);
+app.use('/event_api', Event_api);
 
 let cobotClientSocket = null;
 
@@ -89,7 +85,8 @@ io.on('connection', (socket) => {
 
 
 server.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server is running on: http://localhost:${PORT}`);
+  console.log('\nDemo links:');
   console.log(`http://localhost:${PORT}/demo-cobot-client.html`);  
   console.log(`http://localhost:${PORT}/demo-programmer-client.html`);
   console.log(`http://localhost:${PORT}/demo-user-client.html`);
