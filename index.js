@@ -90,4 +90,5 @@ server.listen(PORT, () => {
   console.log(`http://localhost:${PORT}/demo-cobot-client.html`);  
   console.log(`http://localhost:${PORT}/demo-programmer-client.html`);
   console.log(`http://localhost:${PORT}/demo-user-client.html`);
+  console.log(`http://localhost:${PORT}/demo-object.html`);
 });

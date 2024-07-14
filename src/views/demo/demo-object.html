@@ -429,21 +429,12 @@ window.addEventListener("resize", function () {
                     GearLeft.rotation.z += rotationSpeed;
                     console.log(cobotState)
                     break;
-                case "7":
-                    Object.position.z = Object.position.z += 10;
-                    console.log('toa do tao: ', Object.position.z)
-                    break;     
-                case "9":
-                    Object.position.z = Object.position.z -= 10;
-                    console.log('toa do tao: ', Object.position.z)
-                    break; 
-                    // táo đến x=90 thi cho tay gạt tới 
             }
 
         });
 
  var GUI = BABYLON.GUI;
-
+ var ObjectName;
 // tạo một khung cho các phần tử UI
 var advancedTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 var UiPanel = new BABYLON.GUI.StackPanel();
@@ -453,23 +444,34 @@ UiPanel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
 UiPanel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
 advancedTexture.addControl(UiPanel);
 
-var createButton = GUI.Button.CreateSimpleButton("detectButton", "Object detection");
-createButton.paddingTop = "10px";
-createButton.width = "150px";
-createButton.height = "40px";
-createButton.color = "white";
-createButton.background = "green";
-createButton.cornerRadius = 20;
+var detectButton = GUI.Button.CreateSimpleButton("detectButton", "Start detection");
+detectButton.paddingTop = "10px";
+detectButton.width = "150px";
+detectButton.height = "40px";
+detectButton.color = "white";
+detectButton.background = "red";
+detectButton.cornerRadius = 20;
 
-// Biến toàn cục để lưu ID của interval
-var intervalObject;
-var intervalCobot;
+var interactButton1 = GUI.Button.CreateSimpleButton("detectButton", "Mode 1");
+interactButton1.paddingTop = "10px";
+interactButton1.width = "150px";
+interactButton1.height = "40px";
+interactButton1.color = "black";
+interactButton1.background = "yellow";
+interactButton1.cornerRadius = 20;
 
+var interactButton2 = GUI.Button.CreateSimpleButton("detectButton", "Mode 2");
+interactButton2.paddingTop = "10px";
+interactButton2.width = "150px";
+interactButton2.height = "40px";
+interactButton2.color = "black";
+interactButton2.background = "yellow";
+interactButton2.cornerRadius = 20;
 // const fruits = [];
 
 
 // let nextFruitId = 1;
-createButton.onPointerUpObservable.add(function () {
+detectButton.onPointerUpObservable.add(function () {
     // fruits.push({
     //     id: nextFruitId++,
     //     type: 'apple',
@@ -477,8 +479,44 @@ createButton.onPointerUpObservable.add(function () {
     // })
     CreateObject();
 });
-UiPanel.addControl(createButton);
 
+interactButton1.onPointerUpObservable.add(function () {
+    
+    ObjectName = 'Apple';
+    console.log('Đối tượng được phân loại theo tương tác là: ', ObjectName);
+    // Sử dụng API để bắt tương tác
+    fetch('http://localhost:3030/event_api/init_event', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            event: 'Interact to classify apples',
+            information: 'Classify apples by interact!!!',
+        }),
+    })
+});
+
+interactButton2.onPointerUpObservable.add(function () {
+    
+    ObjectName = 'Orange';
+    console.log('Đối tượng được phân loại theo tương tác là: ', ObjectName);
+    // Sử dụng API để bắt tương tác
+    fetch('http://localhost:3030/event_api/init_event', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            event: 'Interact to classify oranges',
+            information: 'Classify oranges by interact!!!',
+        }),
+    })
+});
+
+UiPanel.addControl(interactButton1);
+UiPanel.addControl(interactButton2);
+UiPanel.addControl(detectButton);
 
 
 // object detection!!!
@@ -489,19 +527,31 @@ UiPanel.addControl(createButton);
 //     })
 // }, 20);
 
+// Biến toàn cục để lưu ID của interval
+var intervalObject;
+var intervalCobot;
+
 
 
 // Hàm di chuyển đối tựng 
 function CreateObject(){
-    var timeAppear = new Date();
 
-    //var random = Math.floor(Math.random() * 2);
+    // Tạo parent cho vật thể  
+    var ObjectApple = BABYLON.MeshBuilder.CreateSphere("Object", { diameter: 1 }, scene);
+    ObjectApple.position.x = -140;
+    var ObjectOrange = BABYLON.MeshBuilder.CreateSphere("Object", { diameter: 1 }, scene);
+    ObjectOrange.position.x = -140;
+
+    var timeAppear = new Date();
+    var objectName;
+    var random = Math.floor(Math.random() * 2);
 
     // Import file .stl sinh quả táo hoặc cam ngẫu nhiên
-    //if (random == 0) {
+    if (random == 0) {
+        objectName = 'Apple';
         BABYLON.SceneLoader.ImportMesh("Apple", "https://raw.githubusercontent.com/LTDat-HustK65/GP/master/server/src/public/models/", "Apple.stl", scene, function(newMeshes) {
         var importedMesh = newMeshes[0];
-        importedMesh.parent = Object;
+        importedMesh.parent = ObjectApple;
         importedMesh.scaling = new BABYLON.Vector3(30, 30, 30);
         importedMesh.setPivotPoint(new BABYLON.Vector3(0, 0, 0));
         importedMesh.position.x = -140;
@@ -510,45 +560,137 @@ function CreateObject(){
         importedMesh.material = new BABYLON.StandardMaterial("importedMeshMaterial", scene);
         importedMesh.material.diffuseColor = new BABYLON.Color3(1, 0, 0);
         })
-    // } else {
-    //     BABYLON.SceneLoader.ImportMesh("Orange", "https://raw.githubusercontent.com/LTDat-HustK65/GP/master/server/src/public/models/", "Orange.stl", scene, function(newMeshes) {
-    //     var importedMesh = newMeshes[0];
-    //     importedMesh.parent = Object;
-    //     importedMesh.scaling = new BABYLON.Vector3(30, 30, 30);
-    //     importedMesh.setPivotPoint(new BABYLON.Vector3(0, 0, 0));
-    //     importedMesh.position.x = -140;
-    //     importedMesh.position.y = 130;
-    //     importedMesh.position.z = 190;
-    //     importedMesh.material = new BABYLON.StandardMaterial("importedMeshMaterial", scene);
-    //     importedMesh.material.diffuseColor = new BABYLON.Color3(1, 0.5, 0);
-    //     })
-    // }
-    
-    // Tạo parent cho vật thể  
-    var Object = BABYLON.MeshBuilder.CreateSphere("Object", { diameter: 1 }, scene);
-    Object.position.x = -140;
+        // Gọi hàm di chuyển vật thể mỗi 50ms
+        intervalObject = setInterval(MovingObject(ObjectApple, timeAppear, 'Apple'),50);
+        // Gọi API để theo dõi vật thể.
+        // fetch('http://localhost:3030/object_api/detection', {
+        //     method: 'POST',
+        //     headers: {
+        //         'Content-Type': 'application/json',
+        //     },
+        //     body: JSON.stringify({
+        //         timeApear: Date.now(),
+        //         properties: {
+        //             name: objectName,
+        //             speed: 30,
+        //             vector: {
+        //                 x: 1, 
+        //                 y: 0,
+        //                 z: 0
+        //             },
+        //             currentLocation: {
+        //                 x: ObjectApple.position.x,
+        //                 y: ObjectApple.position.y,
+        //                 z: ObjectApple.position.z
+        //             }
+        //         }
+        //     }),
+        // })
+    } else {
+        objectName = 'Orange';
+        BABYLON.SceneLoader.ImportMesh("Orange", "https://raw.githubusercontent.com/LTDat-HustK65/GP/master/server/src/public/models/", "Orange.stl", scene, function(newMeshes) {
+        var importedMesh = newMeshes[0];
+        importedMesh.parent = ObjectOrange;
+        importedMesh.scaling = new BABYLON.Vector3(30, 30, 30);
+        importedMesh.setPivotPoint(new BABYLON.Vector3(0, 0, 0));
+        importedMesh.position.x = -140;
+        importedMesh.position.y = 130;
+        importedMesh.position.z = 190;
+        importedMesh.material = new BABYLON.StandardMaterial("importedMeshMaterial", scene);
+        importedMesh.material.diffuseColor = new BABYLON.Color3(1, 0.5, 0);
+        })
+        // Gọi hàm di chuyển vật thể mỗi 50ms
+        intervalObject = setInterval(MovingObject(ObjectOrange, timeAppear, 'Orange'),50);
+        // Gọi API để theo dõi vật thể.
+        // fetch('http://localhost:3030/object_api/detection', {
+        //     method: 'POST',
+        //     headers: {
+        //         'Content-Type': 'application/json',
+        //     },
+        //     body: JSON.stringify({
+        //         timeApear: Date.now(),
+        //         properties: {
+        //             name: objectName,
+        //             speed: 30,
+        //             vector: {
+        //                 x: 1, 
+        //                 y: 0,
+        //                 z: 0
+        //             },
+        //             currentLocation: {
+        //                 x: ObjectOrange.position.x,
+        //                 y: ObjectOrange.position.y,
+        //                 z: ObjectOrange.position.z
+        //             }
+        //         }
+        //     }),
+        // })
+    }
 
-    // Gọi hàm di chuyển vật thể mỗi 50ms
-    intervalObject = setInterval(MovingObject(Object, timeAppear),50);
     
 }
 
 // Hàm di chuyển đối tượng trên đường thẳng
-function MovingObject(object, timeAppear) {
+function MovingObject(object, timeAppear, objectName){
+    //Gọi API để theo dõi vật thể.
+        fetch('http://localhost:3030/object_api/detection', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                timeApear: timeAppear,
+                properties: {
+                    name: objectName,
+                    speed: 30,
+                    vector: {
+                        x: 1, 
+                        y: 0,
+                        z: 0
+                    },
+                    currentLocation: {
+                        x: object.position.x,
+                        y: object.position.y,
+                        z: object.position.z
+                    }
+                }
+            }),
+        })
     return function() {
         const timeNow = new Date();
         
         var dentalTime = (timeNow.getTime() - timeAppear.getTime()) / 1000;
 
-        // tốc độ di chuyển của quả táo là hằng số bằng 15
-        object.position.x = -140 + dentalTime * 15;
-        console.log('Tọa độ táo: ', object.position.x);
+        // tốc độ di chuyển của quả táo là hằng số bằng 30
+        object.position.x = -140 + dentalTime * 30;
+        console.log('Tọa độ: ', object.position.x);
 
-        if (object.position.x >= 130) {
+        if (object.position.x >= 130 && objectName === ObjectName) {
             
             intervalCobot = setInterval(MovingCobot(object,timeAppear), 50);
-                        
-            console.log('Táo đã đến!!!');
+            //gọi API để theo doi vật thể
+            fetch('http://localhost:3030/object_api/update', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    timeAppear: timeAppear,
+                    properties: {
+                        currentLocation: {
+                            x: object.position.x,
+                            y: object.position.y,
+                            z: object.position.z
+                        }
+                    }
+                }),
+            })       
+            console.log('Đối tượng đã đến!!!');
+        }
+        else if (object.position.x >= 300 && objectName !== ObjectName) {
+            console.log('Đối tượng phân loại không đúng theo mục đích tương tác!!!');
+            clearInterval(intervalObject);
+            CreateObject();
         }
     }
 }
@@ -557,7 +699,7 @@ function MovingObject(object, timeAppear) {
 function CaculateDropTime(timeAppear){
     // console.log(new Date(timeAppear.getTime()/1000 + 280/15))
     // console.log(timeAppear.getTime()/1000 + 280/15)
-    return (new Date(timeAppear.getTime() + 270*1000/15));// 270 là khoảng cách từ điểm xuất hiện đến điểm bị gạt
+    return (new Date(timeAppear.getTime() + 270*1000/30));// 270 là khoảng cách từ điểm xuất hiện đến điểm bị gạt//
 }
 
 // Hàm di chuyển cánh tay
@@ -580,13 +722,29 @@ function MovingCobot(object, timeAppear){
             
             object.position.y -=  dentalTime * 15;
             console.log('Tọa độ táo: ', object.position.y);
+            fetch('http://localhost:3030/object_api/update', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    timeAppear: timeAppear,
+                    properties: {
+                        currentLocation: {
+                            x: object.position.x,
+                            y: object.position.y,
+                            z: object.position.z
+                        }
+                    }
+                }),
+            })
             console.log('Góc quay Servo014: ', Servo04.rotation.x);
             if (Servo04.rotation.x >= 0) {
                 clearInterval(intervalObject);
                 console.log('Đã rơi vào giỏ!!!');
                 console.log('Thời điểm xuất hiện: ', timeAppear);
                 console.log('Thời điểm rơi vào giỏ: ', dropTime);
-                
+                CreateObject();
                 return; // Dừng hàm nếu Servo04.rotation.x <= -0.5
             }
               
@@ -599,15 +757,6 @@ function MovingCobot(object, timeAppear){
 window.addEventListener("resize", function () {
     engine.resize();
 });
-   
-
-// var socket = io.connect('/....');
-// socket.on('object-detection', function(data) {
-//     console.log('Got announcement:', data.message);
-//     CreateObject()
-// });
-
-
 
     </script>
 </body>

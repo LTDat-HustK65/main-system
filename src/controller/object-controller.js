@@ -6,7 +6,7 @@ const ObjectDetection = async (req, res) => {
     //method: POST
     try {
         const object = new Object({// tạo một object mới
-            timeApear: Date.now(),
+            timeApear: req.body.timeApear,
             properties: {
                 name: req.body.properties.name,
                 speed: req.body.properties.speed,
@@ -35,7 +35,7 @@ const ObjectDetection = async (req, res) => {
 const UpdateObject = async (req, res) => {
     //method: PUT
     try {
-        const object = await Object.findByIdAndUpdate(req.body.name, {
+        const object = await Object.findByIdAndUpdate(req.body.timeApear, {
             properties: {
                 currentLocation: {
                     x: req.body.properties.currentLocation.x,

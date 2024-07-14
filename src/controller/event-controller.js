@@ -16,7 +16,11 @@ const GetEvent = async (req, res) => {
 const InitEvent = async (req, res) => {
     //method: POST
     try{
-        const event = new Event(req.body);
+        const event = new Event({
+            name: req.body.event,
+            time_detection: new Date(),
+            information: req.body.information
+        });
         await event.save();
         res.status(200).send(event);
     }
