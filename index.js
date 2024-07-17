@@ -88,7 +88,7 @@ server.listen(PORT, () => {
   console.log(`Server is running on: http://localhost:${PORT}`);
   console.log('\nDemo links:');
   console.log(`http://localhost:${PORT}/demo-cobot-client.html`);  
-  console.log(`http://localhost:${PORT}/demo-programmer-client.html`);
+  //console.log(`http://localhost:${PORT}/demo-programmer-client.html`);
   console.log(`http://localhost:${PORT}/demo-user-client.html`);
   console.log(`http://localhost:${PORT}/demo-object.html`);
 });
